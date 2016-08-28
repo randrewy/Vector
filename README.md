@@ -1,8 +1,10 @@
 ## Simple Vector ##
 
-This is a simple C++14 header-only library for matrix computation. It includes only the smallest set of vital operations.
+This is a simple C++14 header-only library for matrix computation. It includes only the smallest set 
+of vital operations.
 
-Both Matrix and Vector have fixed size, defined by the template parameters. Almost all operations are constexpr.
+Both Matrix and Vector have fixed size, defined by the template parameters. Vectors amd matrices up 
+to 16 elements are stored withoud heap allocation and almost all operations for them are constexpr.
 
 ### Installation ###
 No build is required. Just pull repository wherever you want and include `Vector.h` into your project.
