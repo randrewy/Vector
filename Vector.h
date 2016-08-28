@@ -5,18 +5,12 @@
 #include <vector>
 #include <cmath>
 
-#if defined _MSC_VER
-#define CONSTEXPR
-#elif defined MINGW_SDK_INIT
-#define CONSTEXPR
+#ifdef __clang__
+    #ifndef MSC_VER
+        #define CONSTEXPR constexpr
+    #endif
 #else
-#define CONSTEXPR constexpr
-#endif
-
-#if defined MINGW_SDK_INIT
-#define CONSTEXPR_CTOR_WITH_BODY
-#else
-#define CONSTEXPR_CTOR_WITH_BODY constexpr
+#define CONSTEXPR
 #endif
 
 namespace tmx {
@@ -93,7 +87,7 @@ struct Storage2D : public Storage<Type, N_x * N_y> {
     using Storage<Type, N_x * N_y>::Storage; // Allow Constexpr init without inner braces
 
     template<typename T, size_t N_i, size_t N_j> // template guarantee narrowing is not possible
-    CONSTEXPR_CTOR_WITH_BODY Storage2D(Initializer2D<T, N_i, N_j>& list) {
+    CONSTEXPR Storage2D(Initializer2D<T, N_i, N_j>& list) {
         static_assert(N_i == N_x, "Row number missmatch");
         static_assert(N_j == N_y, "Col number missmatch");
         init(list);
@@ -107,8 +101,8 @@ class Vector : public Storage<T, N> {
 public:
     constexpr size_t size() const noexcept { return N; }
 
-    T& operator[](size_t i) noexcept { return data[i]; }
-    T operator[](size_t i) const noexcept { return data[i]; }
+    CONSTEXPR T& operator[](size_t i) noexcept { return data[i]; }
+    CONSTEXPR T operator[](size_t i) const noexcept { return data[i]; }
 
     CONSTEXPR inline Vector& operator += (const Vector& v) noexcept;
     CONSTEXPR inline Vector& operator -= (const Vector& v) noexcept;
@@ -168,7 +162,7 @@ CONSTEXPR inline Vector<T, N>& Vector<T, N>::operator /= (Scalar s) noexcept {
 
 
 template<class T, size_t N>
-constexpr inline Vector<T, N>& operator - (const Vector<T, N>& v) noexcept {
+CONSTEXPR inline Vector<T, N>& operator - (const Vector<T, N>& v) noexcept {
     Vector<T, N> tmp;
     for (size_t i = 0; i < N; ++i) {
         tmp[i] = -v[i];
@@ -197,17 +191,17 @@ CONSTEXPR inline T operator * (const Vector<T, N>& lhs, const Vector<T, N>& rhs)
 }
 
 template<class T, size_t N, class S>
-constexpr inline Vector<T, N> operator * (Vector<T, N> lhs, S d) noexcept {
+CONSTEXPR inline Vector<T, N> operator * (Vector<T, N> lhs, S d) noexcept {
     return lhs *= d;
 }
 
 template<class T, size_t N, class S>
-constexpr inline Vector<T, N> operator * (S d, Vector<T, N> lhs) noexcept {
+CONSTEXPR inline Vector<T, N> operator * (S d, Vector<T, N> lhs) noexcept {
     return lhs * d;
 }
 
 template<class T, size_t N, class S>
-constexpr inline Vector<T, N> operator / (Vector<T, N> lhs, S d) noexcept {
+CONSTEXPR inline Vector<T, N> operator / (Vector<T, N> lhs, S d) noexcept {
     return lhs *= 1./d;
 }
 
@@ -305,27 +299,38 @@ CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator /= (Scalar s
 
 
 template<class T, size_t N_i, size_t N_j>
-CONSTEXPR inline Matrix<T, N_i, N_j> operator + (Matrix<T, N_i, N_j> m1, const Matrix<T, N_i, N_j>& m2) noexcept {
+constexpr inline Matrix<T, N_i, N_j> operator + (Matrix<T, N_i, N_j> m1, const Matrix<T, N_i, N_j>& m2) noexcept {
     return m1 += m2;
 }
 
 template<class T, size_t N_i, size_t N_j>
-CONSTEXPR inline Matrix<T, N_i, N_j> operator - (Matrix<T, N_i, N_j> m1, const Matrix<T, N_i, N_j>& m2) noexcept {
+constexpr inline Matrix<T, N_i, N_j> operator - (Matrix<T, N_i, N_j> m1, const Matrix<T, N_i, N_j>& m2) noexcept {
     return m1 -= m2;
 }
 
+template<class T, size_t N_i, size_t N_j>
+CONSTEXPR inline Matrix<T, N_i, N_j> operator - (const Matrix<T, N_i, N_j>& m) noexcept {
+    Matrix<T, N_i, N_j> tmp;
+    for (size_t i = 0; i < N_i; ++i) {
+        for (size_t j = 0; j < N_j; ++j) {
+            tmp(i, j) = -m(i, j);
+        }
+    }
+    return tmp;
+}
+
 template<class T, size_t N_i, size_t N_j, class Scalar>
-CONSTEXPR inline Matrix<T, N_i, N_j> operator * (Matrix<T, N_i, N_j> m, const Scalar& s) noexcept {
+constexpr inline Matrix<T, N_i, N_j> operator * (Matrix<T, N_i, N_j> m, const Scalar& s) noexcept {
     return m *= s;
 }
 
 template<class T, size_t N_i, size_t N_j, class Scalar>
-CONSTEXPR inline Matrix<T, N_i, N_j> operator * (const Scalar& s, const Matrix<T, N_i, N_j>& m) noexcept {
+constexpr inline Matrix<T, N_i, N_j> operator * (const Scalar& s, const Matrix<T, N_i, N_j>& m) noexcept {
     return m * s;
 }
 
 template<class T, size_t N_i, size_t N_j, class Scalar>
-CONSTEXPR inline Matrix<T, N_i, N_j> operator / (Matrix<T, N_i, N_j> m, const Scalar& s) noexcept {
+constexpr inline Matrix<T, N_i, N_j> operator / (Matrix<T, N_i, N_j> m, const Scalar& s) noexcept {
     return m /= s;
 }
 

@@ -24,6 +24,16 @@ TEST(VectorTest, minus) {
     ASSERT_DOUBLE_EQ(4., r[2]);
 }
 
+TEST(VectorTest, unary_minus) {
+    Vector a{ 1., 2., 3. };
+
+    auto r = -a;
+
+    ASSERT_DOUBLE_EQ(-1., r[0]);
+    ASSERT_DOUBLE_EQ(-2., r[1]);
+    ASSERT_DOUBLE_EQ(-3., r[2]);
+}
+
 TEST(VectorTest, mul) {
     Vector a{ 1., 2., -3. };
     Vector r = a * 2;
@@ -127,6 +137,17 @@ TEST_F(MatrixTest, minus) {
     }};
 
     ASSERT_MATRIX_EQ(check, m1 - m2);
+}
+
+TEST_F(MatrixTest, unary_minus) {
+    Matrix check {{
+        {  1., 2.,  -2. },
+        {  3., 1.,  -3. },
+        { -2., 1.,   3. },
+    }};
+
+    ASSERT_MATRIX_EQ(check, -m2);
+
 }
 
 TEST_F(MatrixTest, div) {
