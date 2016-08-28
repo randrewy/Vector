@@ -85,7 +85,7 @@ struct Storage2D : public Storage<Type, N_x * N_y> {
     CONSTEXPR void init(Initializer2D<Type, N_x, N_y> list) {
         for (size_t i = 0; i < N_x; ++i) {
             for (size_t j = 0; j < N_y; ++j) {
-                data[i*N_x + j] = list[i][j];
+                data[i*N_y + j] = list[i][j];
             }
         }
     }
@@ -188,7 +188,7 @@ constexpr inline Vector<T, N> operator + (Vector<T, N> lhs, const Vector<T, N>& 
 
 
 template<class T, size_t N>
-constexpr inline T operator * (const Vector<T, N>& lhs, const Vector<T, N>& rhs) noexcept {
+CONSTEXPR inline T operator * (const Vector<T, N>& lhs, const Vector<T, N>& rhs) noexcept {
     T res = 0;
     for (size_t i = 0; i < N; ++i) {
         res += lhs[i] * rhs[i];
@@ -204,6 +204,11 @@ constexpr inline Vector<T, N> operator * (Vector<T, N> lhs, S d) noexcept {
 template<class T, size_t N, class S>
 constexpr inline Vector<T, N> operator * (S d, Vector<T, N> lhs) noexcept {
     return lhs * d;
+}
+
+template<class T, size_t N, class S>
+constexpr inline Vector<T, N> operator / (Vector<T, N> lhs, S d) noexcept {
+    return lhs *= 1./d;
 }
 
 template<class T, size_t N>
@@ -299,6 +304,31 @@ CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator /= (Scalar s
 }
 
 
+template<class T, size_t N_i, size_t N_j>
+CONSTEXPR inline Matrix<T, N_i, N_j> operator + (Matrix<T, N_i, N_j> m1, const Matrix<T, N_i, N_j>& m2) noexcept {
+    return m1 += m2;
+}
+
+template<class T, size_t N_i, size_t N_j>
+CONSTEXPR inline Matrix<T, N_i, N_j> operator - (Matrix<T, N_i, N_j> m1, const Matrix<T, N_i, N_j>& m2) noexcept {
+    return m1 -= m2;
+}
+
+template<class T, size_t N_i, size_t N_j, class Scalar>
+CONSTEXPR inline Matrix<T, N_i, N_j> operator * (Matrix<T, N_i, N_j> m, const Scalar& s) noexcept {
+    return m *= s;
+}
+
+template<class T, size_t N_i, size_t N_j, class Scalar>
+CONSTEXPR inline Matrix<T, N_i, N_j> operator * (const Scalar& s, const Matrix<T, N_i, N_j>& m) noexcept {
+    return m * s;
+}
+
+template<class T, size_t N_i, size_t N_j, class Scalar>
+CONSTEXPR inline Matrix<T, N_i, N_j> operator / (Matrix<T, N_i, N_j> m, const Scalar& s) noexcept {
+    return m /= s;
+}
+
 // naive n^3
 template<class T, size_t N_i, size_t N_j, size_t N_k>
 CONSTEXPR inline Matrix<T, N_i, N_k> operator * (const Matrix<T, N_i, N_j>& m1, const Matrix<T, N_j, N_k>& m2) noexcept {
@@ -327,7 +357,7 @@ CONSTEXPR inline Vector<T, N_i> operator * (const Matrix<T, N_i, N_j>& m, const 
 }
 
 template<class T, size_t N_i, size_t N_j>
-constexpr inline Vector<T, N_j> operator * (const Vector<T, N_i>& v, const Matrix<T, N_i, N_j>& m) noexcept {
+CONSTEXPR inline Vector<T, N_j> operator * (const Vector<T, N_i>& v, const Matrix<T, N_i, N_j>& m) noexcept {
     Vector<T, N_j> result;
     for (size_t i = 0; i < N_i; ++i) {
         for (size_t j = 0; j < N_j; ++j) {
