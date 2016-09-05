@@ -50,7 +50,7 @@ struct Storage<Type, N, std::enable_if_t<(N < MAX_STACK_SIZE), Type[N]>> {
 protected:
     Type data[N];
 public:
-   template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N || sizeof...(Args) == 0, void>>
+   template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N || sizeof...(Args) == 0>>
    constexpr Storage(const Args&... args) noexcept : data {args... } {}
    Storage(const Init&) noexcept {}
 };
@@ -61,7 +61,7 @@ protected:
     std::vector<Type> data;
 public:
     constexpr Storage() : data(N) {}
-    template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N, void>>
+    template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N>>
     constexpr Storage(const Args&... args) : data {args... } {}
 };
 
@@ -115,8 +115,9 @@ public:
 
     constexpr Vector() noexcept(noexcept(Storage<T, N>())) {}
 
-    // disable Vector&/&& here, so copy and move are default
-    template<typename... Args, typename = std::enable_if_t<!traits::AllSameDecay<Vector<T, N>, Args...>(), void> >
+    // disable Vector&/&& here, so copy and move are default (though template instantiated copy c-tor should not
+    // prevent move op generating, it is not true for some compilers)
+    template<typename... Args, typename = std::enable_if_t<!traits::AllSameDecay<Vector<T, N>, Args...>()> >
     constexpr Vector(const Args&... args) noexcept(noexcept(Storage<T, N>()))
         : Storage<T, N>(args...) {
         static_assert(sizeof...(Args) == N, "Vector<_, N> constructor should be called with exactly N arguments");
