@@ -46,7 +46,7 @@ template<typename Type, size_t N, typename storage_type = std::conditional_t<(N 
 struct Storage;
 
 template<typename Type, size_t N>
-struct Storage<Type, N, std::enable_if_t<(N < MAX_STACK_SIZE), Type[N]>> {
+struct Storage<Type, N, Type[N]> {
 protected:
     Type data[N];
 public:
