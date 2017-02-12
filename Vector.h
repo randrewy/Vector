@@ -6,12 +6,23 @@
 #include <cmath>
 
 #ifdef __clang__
-    #ifndef MSC_VER
-        #define CONSTEXPR constexpr
-    #endif
+    #define CONSTEXPR constexpr
 #else
 #define CONSTEXPR
-#endif
+#endif // __clang__
+
+#if __cplusplus == 201103L
+namespace std {
+template<typename T>
+using decay_t = typename decay<T>::type;
+
+template<bool value, typename TrueType, typename FalseType>
+using conditional_t = typename conditional<value, TrueType, FalseType>::type;
+
+template<bool value, typename Type = void>
+using enable_if_t = typename enable_if<value, Type>::type;
+}
+#endif // __cplusplus == 201103
 
 namespace tmx {
 namespace traits {

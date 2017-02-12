@@ -1,6 +1,6 @@
 ## Simple Vector ##
 
-This is a simple C++14 header-only library for matrix computation. It includes only the smallest set 
+This is a simple C++11 header-only library for matrix computation. It includes only the smallest set 
 of vital operations.
 
 Both Matrix and Vector have fixed size, defined by the template parameters. Vectors and matrices up 
