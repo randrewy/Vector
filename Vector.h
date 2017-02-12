@@ -55,8 +55,10 @@ constexpr Init raw = Init::raw;
 
 struct IllegalIndexException {};
 
-template<typename Type, size_t N, typename = std::conditional_t<(N < MAX_STACK_SIZE), Type[N], std::vector<Type>>>
+// QtCreator goes crazy if you use '<' in "N < MAX_STACK_SIZE
+template<typename Type, size_t N, typename = std::conditional_t<(N <= MAX_STACK_SIZE - 1), Type[N], std::vector<Type>>>
 struct Storage;
+
 
 // is it better than anonymous struct? (which is deprecated since c++11)
 template<typename Type>
@@ -82,6 +84,8 @@ struct Storage<Type, 2, Type[2]> {
         default: throw IllegalIndexException{};
         }
     }
+
+    const Type* plainData() const { return &x; }
 };
 
 template<typename Type>
@@ -110,6 +114,8 @@ struct Storage<Type, 3, Type[3]> {
         default: throw IllegalIndexException{};
         }
     }
+
+    const Type* plainData() const { return &x; }
 };
 
 
@@ -118,13 +124,15 @@ struct Storage<Type, N, Type[N]> {
 protected:
     Type data[N];
 public:
-   template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N || sizeof...(Args) == 0>>
-   constexpr Storage(const Args&... args) : data {args... } {}
+    template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N || sizeof...(Args) == 0>>
+    constexpr Storage(const Args&... args) : data {args... } {}
    
-   Storage(const Init&) {}
+    Storage(const Init&) {}
 
-   inline CONSTEXPR Type& operator[](size_t i) { return data[i]; }
-   inline CONSTEXPR Type  operator[](size_t i) const { return data[i]; }
+    inline CONSTEXPR Type& operator[](size_t i) { return data[i]; }
+    inline CONSTEXPR Type  operator[](size_t i) const { return data[i]; }
+
+    const Type* plainData() const { return data; }
 };
 
 template<typename Type, size_t N>
@@ -138,6 +146,8 @@ public:
 
     inline CONSTEXPR Type& operator[](size_t i) { return data[i]; }
     inline CONSTEXPR Type  operator[](size_t i) const { return data[i]; }
+
+    const Type* plainData() const { return data.data(); }
 };
 
 
@@ -204,6 +214,8 @@ public:
     }
 
     Vector(const Init& init_tag) : Storage<T, N>(init_tag) {}
+
+    const T* data() const { return Storage<T, N>::plainData(); }
 };
 
 
@@ -341,12 +353,14 @@ public:
 
     using Storage2D<Type, N_x, N_y>::Storage2D;
     constexpr Matrix() : Storage2D<Type, N_x, N_y>() {}
+
+    const Type* data() const { return Storage2D<Type, N_x, N_y>::plainData(); }
 };
 
 template<class T, size_t N_x, size_t N_y>
 CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator += (const Matrix<T, N_x, N_y>& m) {
     for (size_t i = 0; i < size(); ++i) {
-        get(i) += m.data[i];
+        get(i) += m.get(i);
     }
     return *this;
 }
@@ -354,7 +368,7 @@ CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator += (const Ma
 template<class T, size_t N_x, size_t N_y>
 CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator -= (const Matrix<T, N_x, N_y>& m) {
     for (size_t i = 0; i < size(); ++i) {
-        get(i) -= m.data[i];
+        get(i) -= m.get(i);
     }
     return *this;
 }
