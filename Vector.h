@@ -50,55 +50,55 @@ struct Storage;
 // is it better than anonymous struct? (which is deprecated since c++11)
 template<typename Type>
 struct Storage<Type, 2, Type[2]> {
-	Type x;
-	Type y;
-	constexpr Storage(const Type& x = {}, const Type& y = {}) : x(x), y(y) {}
+    Type x;
+    Type y;
+    constexpr Storage(const Type& x = {}, const Type& y = {}) : x(x), y(y) {}
 
-	Storage(const Init&) {}
+    Storage(const Init&) {}
 
-	inline CONSTEXPR Type& operator[](size_t i) {
-		switch (i) {
-		case 0: return x;
-		case 1: return y;
-		default: throw IllegalIndexException{};
-		}
-	}
+    inline CONSTEXPR Type& operator[](size_t i) {
+        switch (i) {
+        case 0: return x;
+        case 1: return y;
+        default: throw IllegalIndexException{};
+        }
+    }
 
-	inline CONSTEXPR Type operator[](size_t i) const {
-		switch (i) {
-		case 0: return x;
-		case 1: return y;
-		default: throw IllegalIndexException{};
-		}
-	}
+    inline CONSTEXPR Type operator[](size_t i) const {
+        switch (i) {
+        case 0: return x;
+        case 1: return y;
+        default: throw IllegalIndexException{};
+        }
+    }
 };
 
 template<typename Type>
 struct Storage<Type, 3, Type[3]> {
-	Type x;
-	Type y;
-	Type z;
-	constexpr Storage(const Type& x = {}, const Type& y = {}, const Type& z = {}) : x(x), y(y), z(z) {}
+    Type x;
+    Type y;
+    Type z;
+    constexpr Storage(const Type& x = {}, const Type& y = {}, const Type& z = {}) : x(x), y(y), z(z) {}
 
-	Storage(const Init&) {}
+    Storage(const Init&) {}
 
-	inline CONSTEXPR Type& operator[](size_t i) {
-		switch (i) {
-		case 0: return x;
-		case 1: return y;
-		case 2: return z;
-		default: throw IllegalIndexException{};
-		}
-	}
+    inline CONSTEXPR Type& operator[](size_t i) {
+        switch (i) {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        default: throw IllegalIndexException{};
+        }
+    }
 
-	inline CONSTEXPR Type operator[](size_t i) const {
-		switch (i) {
-		case 0: return x;
-		case 1: return y;
-		case 2: return z;
-		default: throw IllegalIndexException{};
-		}
-	}
+    inline CONSTEXPR Type operator[](size_t i) const {
+        switch (i) {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        default: throw IllegalIndexException{};
+        }
+    }
 };
 
 
@@ -123,10 +123,10 @@ protected:
 public:
     constexpr Storage() : data(N) {}
     template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N>>
-	constexpr Storage(const Args&... args) : data {args... } {}
+    constexpr Storage(const Args&... args) : data {args... } {}
 
-	inline CONSTEXPR Type& operator[](size_t i) { return data[i]; }
-	inline CONSTEXPR Type  operator[](size_t i) const { return data[i]; }
+    inline CONSTEXPR Type& operator[](size_t i) { return data[i]; }
+    inline CONSTEXPR Type  operator[](size_t i) const { return data[i]; }
 };
 
 
@@ -139,37 +139,37 @@ using Initializer2D = const Type(&)[N_i][N_j];
 template<typename Type, size_t N_x, size_t N_y>
 struct Storage2D : public Storage<Type, N_x * N_y> {
 protected:
-	inline CONSTEXPR Type& get(size_t i, size_t j) { return Storage<Type, N_x * N_y>::operator[](i*N_y + j); }
-	inline CONSTEXPR Type  get(size_t i, size_t j) const { return Storage<Type, N_x * N_y>::operator[](i*N_y + j); }
-	inline CONSTEXPR Type& get(size_t i) { return Storage<Type, N_x * N_y>::operator[](i); }
-	inline CONSTEXPR Type  get(size_t i) const { return Storage<Type, N_x * N_y>::operator[](i); }
+    inline CONSTEXPR Type& get(size_t i, size_t j) { return Storage<Type, N_x * N_y>::operator[](i*N_y + j); }
+    inline CONSTEXPR Type  get(size_t i, size_t j) const { return Storage<Type, N_x * N_y>::operator[](i*N_y + j); }
+    inline CONSTEXPR Type& get(size_t i) { return Storage<Type, N_x * N_y>::operator[](i); }
+    inline CONSTEXPR Type  get(size_t i) const { return Storage<Type, N_x * N_y>::operator[](i); }
 
-	CONSTEXPR void init(Initializer2D<Type, N_x, N_y> list) {
-		for (size_t i = 0; i < N_x; ++i) {
-			for (size_t j = 0; j < N_y; ++j) {
-				get(i, j) = list[i][j];
-			}
-		}
-	}
+    CONSTEXPR void init(Initializer2D<Type, N_x, N_y> list) {
+        for (size_t i = 0; i < N_x; ++i) {
+            for (size_t j = 0; j < N_y; ++j) {
+                get(i, j) = list[i][j];
+            }
+        }
+    }
 public:
-	CONSTEXPR Storage2D() : Storage<Type, N_x * N_y>() {}
+    CONSTEXPR Storage2D() : Storage<Type, N_x * N_y>() {}
 
-	template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N_x * N_y>>
-	constexpr Storage2D(const Args&... args) : Storage<Type, N_x * N_y>( args... ) {} // Allow Constexpr init without inner braces
+    template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N_x * N_y>>
+    constexpr Storage2D(const Args&... args) : Storage<Type, N_x * N_y>( args... ) {} // Allow Constexpr init without inner braces
 
-	template<typename T, size_t N_i, size_t N_j> // template guarantee narrowing is not possible
-	CONSTEXPR Storage2D(Initializer2D<T, N_i, N_j>& list) {
-		static_assert(N_i == N_x, "Row number missmatch");
-		static_assert(N_j == N_y, "Col number missmatch");
-		init(list);
-	}
+    template<typename T, size_t N_i, size_t N_j> // template guarantee narrowing is not possible
+    CONSTEXPR Storage2D(Initializer2D<T, N_i, N_j>& list) {
+        static_assert(N_i == N_x, "Row number missmatch");
+        static_assert(N_j == N_y, "Col number missmatch");
+        init(list);
+    }
 };
 
 
 template<class T, size_t N>
 class Vector : public Storage<T, N> {
 public:
-	using Storage<T, N>::operator[];
+    using Storage<T, N>::operator[];
 
     constexpr size_t size() const { return N; }
 
@@ -199,7 +199,7 @@ public:
 template<class T, size_t N>
 CONSTEXPR inline Vector<T, N>& Vector<T, N>::operator += (const Vector<T, N>& v) {
     for (size_t i = 0; i < N; ++i) {
-		operator[](i) += v[i];
+        operator[](i) += v[i];
     }
     return *this;
 }
@@ -207,7 +207,7 @@ CONSTEXPR inline Vector<T, N>& Vector<T, N>::operator += (const Vector<T, N>& v)
 template<class T, size_t N>
 CONSTEXPR inline Vector<T, N>& Vector<T, N>::operator -= (const Vector<T, N>& v) {
     for (size_t i = 0; i < N; ++i) {
-		operator[](i) -= v[i];
+        operator[](i) -= v[i];
     }
     return *this;
 }
@@ -216,7 +216,7 @@ template<class T, size_t N>
 template<class Scalar>
 CONSTEXPR inline Vector<T, N>& Vector<T, N>::operator *= (Scalar s) {
     for (size_t i = 0; i < N; ++i) {
-		operator[](i) *= s;
+        operator[](i) *= s;
     }
     return *this;
 }
@@ -225,7 +225,7 @@ template<class T, size_t N>
 template<class Scalar>
 CONSTEXPR inline Vector<T, N>& Vector<T, N>::operator /= (Scalar s) {
     for (size_t i = 0; i < N; ++i) {
-		operator[](i) /= s;
+        operator[](i) /= s;
     }
     return *this;
 }
@@ -308,7 +308,7 @@ Vector<T, N>> general_cross(const Args<T, N>&... args) {
 
 template<typename Type, size_t N_x, size_t N_y>
 struct Matrix : public Storage2D<Type, N_x, N_y> {
-	using Storage2D<Type, N_x, N_y>::get;
+    using Storage2D<Type, N_x, N_y>::get;
 public:
 
     constexpr size_t sizeX() const { return N_x; }
@@ -328,14 +328,14 @@ public:
     CONSTEXPR inline Matrix& operator /= (Scalar s);
 
 
-	using Storage2D<Type, N_x, N_y>::Storage2D;
+    using Storage2D<Type, N_x, N_y>::Storage2D;
     constexpr Matrix() : Storage2D<Type, N_x, N_y>() {}
 };
 
 template<class T, size_t N_x, size_t N_y>
 CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator += (const Matrix<T, N_x, N_y>& m) {
     for (size_t i = 0; i < size(); ++i) {
-		get(i) += m.data[i];
+        get(i) += m.data[i];
     }
     return *this;
 }
@@ -343,7 +343,7 @@ CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator += (const Ma
 template<class T, size_t N_x, size_t N_y>
 CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator -= (const Matrix<T, N_x, N_y>& m) {
     for (size_t i = 0; i < size(); ++i) {
-		get(i) -= m.data[i];
+        get(i) -= m.data[i];
     }
     return *this;
 }
@@ -352,7 +352,7 @@ template<class T, size_t N_x, size_t N_y>
 template<class Scalar>
 CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator *= (Scalar s) {
     for (size_t i = 0; i < size(); ++i) {
-		get(i) *= s;
+        get(i) *= s;
     }
     return *this;
 }
@@ -361,7 +361,7 @@ template<class T, size_t N_x, size_t N_y>
 template<class Scalar>
 CONSTEXPR inline Matrix<T, N_x, N_y>& Matrix<T, N_x, N_y>::operator /= (Scalar s) {
     for (size_t i = 0; i < size(); ++i) {
-		get(i) /= s;
+        get(i) /= s;
     }
     return *this;
 }

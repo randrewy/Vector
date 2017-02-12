@@ -93,7 +93,7 @@ public:
         { -1., -3., 2. },
     }};
 
-    Matrix m2{ {
+    Matrix m2 {{
         { -1., -2.,  2. },
         { -3., -1.,  3. },
         {  2., -1., -3. },
@@ -120,10 +120,10 @@ if (m1.sizeX() > 2 && (m2).sizeX() > 2 && m1.sizeY() > 2 && (m2).sizeY() > 2) \
 
 
 TEST_F(MatrixTest, plus) {
-    Matrix check {{ 
+    Matrix check {{
         {  1., -3.,  5. },
         { -5., -1.,  4. },
-        {  1., -4., -1. } 
+        {  1., -4., -1. }
     }};
 
     ASSERT_MATRIX_EQ(check, m1 + m2);
@@ -197,7 +197,7 @@ TEST_F(MatrixTest, mul_matrix_non_square) {
     Matrix check1 {{
         {  5., -4., -9. },
         { -6.,  2.,  6. },
-        { -6., -5., -6. } 
+        { -6., -5., -6. }
     }};
 
     tmx::Matrix<double, 2, 2> check2 {{
@@ -240,6 +240,6 @@ TEST(MatrixVectorTest, mul_left) {
 }
 
 int main(int argc, char **argv) {
-     ::testing::InitGoogleTest(&argc, argv);
-     return RUN_ALL_TESTS();
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
  }
