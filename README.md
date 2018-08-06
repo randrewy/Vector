@@ -17,7 +17,7 @@ Just for now there is no build system supported and it has to be done manualy,
 so don't forget to link gtest library and add proper include paths.
 
 ### Named Members ###
-Vectors of size 2 and 3 has named members .x, .y and .z for Vector3. This implizes a little overhead if
+Vectors of size 2 and 3 has named members `.x`, `.y` and `.z` for Vector3. This implizes a little overhead if
 optimization level is not high, but all branching is eliminated completely on high level. If you
 don't need this feature or you are afraid of this tiny perfomance overhead in debug define `TMX_DONT_USE_NAMED_MEMBERS`
 before you include library header.
