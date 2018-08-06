@@ -1,6 +1,6 @@
 ## Simple Vector ##
 
-This is a simple C++11 header-only library for matrix computation. It includes only the smallest set 
+This is a simple C++14 header-only library for matrix computation. It includes only the smallest set
 of vital operations.
 
 Both Matrix and Vector have fixed size, defined by the template parameters. Vectors and matrices up 
@@ -15,6 +15,12 @@ Compile and run tests.cpp. There are some basic Vector-Vector, Vector-Matrix and
 
 Just for now there is no build system supported and it has to be done manualy, 
 so don't forget to link gtest library and add proper include paths.
+
+### Named Members ###
+Vectors of size 2 and 3 has named members .x, .y and .z for Vector3. This implizes a little overhead if
+optimization level is not high, but all branching is eliminated completely on high level. If you
+don't need this feature or you are afraid of this tiny perfomance overhead in debug define `TMX_DONT_USE_NAMED_MEMBERS`
+before you include library header.
 
 ### A taste of Vector.h ###
 

@@ -61,6 +61,9 @@ struct Storage;
 
 
 // is it better than anonymous struct? (which is deprecated since c++11)
+// though any good compiler will eliminate all branches from switch
+// this macro is the way to disable it
+#ifndef TMX_DONT_USE_NAMED_MEMBERS
 template<typename Type>
 struct alignas(2 * sizeof(Type)) Storage<Type, 2, Type[2]> {
     Type x;
@@ -117,7 +120,7 @@ struct alignas(4 * sizeof(Type)) Storage<Type, 3, Type[3]> {
 
     const Type* plainData() const { return &x; }
 };
-
+#endif // TMX_DONT_USE_NAMED_MEMBERS
 
 template<typename Type, size_t N>
 struct alignas(sizeof(Type) >= 16 ? 4 * sizeof(Type) : 8 * sizeof(Type)) Storage<Type, N, Type[N]> {
