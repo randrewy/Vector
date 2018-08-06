@@ -5,13 +5,15 @@
 #include <vector>
 #include <cmath>
 
-#ifdef __clang__
+#if    (defined(__clang_major__) && __clang_major__ >= 3 && __clang_minor__ >= 2) \
+    || (defined (_MSC_VER) && _MSC_VER >= 1700 && 0)/* MSC still has some troubles*/ \
+    || (defined (__GNUC__) && __GNUC__ >= 5)
     #define CONSTEXPR constexpr
 #else
 #define CONSTEXPR
 #endif // __clang__
 
-#if __cplusplus == 201103L
+#if __cplusplus <= 201103L
 namespace std {
 template<typename T>
 using decay_t = typename decay<T>::type;
@@ -50,10 +52,8 @@ constexpr bool AllSameDecay() {
 
 constexpr size_t MAX_STACK_SIZE = 17;
 
-enum class Init { raw };
-constexpr Init raw = Init::raw;
-
-struct IllegalIndexException {};
+enum class RawInitTag { raw };
+constexpr RawInitTag raw = RawInitTag::raw;
 
 // QtCreator goes crazy if you use '<' in "N < MAX_STACK_SIZE
 template<typename Type, size_t N, typename = std::conditional_t<(N <= MAX_STACK_SIZE - 1), Type[N], std::vector<Type>>>
@@ -62,26 +62,26 @@ struct Storage;
 
 // is it better than anonymous struct? (which is deprecated since c++11)
 template<typename Type>
-struct Storage<Type, 2, Type[2]> {
+struct alignas(2 * sizeof(Type)) Storage<Type, 2, Type[2]> {
     Type x;
-    Type y;
+    union { Type y; Type __constexpt_fail; };
+
     constexpr Storage(const Type& x = {}, const Type& y = {}) : x(x), y(y) {}
+    Storage(const RawInitTag&) {}
 
-    Storage(const Init&) {}
-
-    inline CONSTEXPR Type& operator[](size_t i) {
+    constexpr Type& operator[](size_t i) {
         switch (i) {
         case 0: return x;
         case 1: return y;
-        default: throw IllegalIndexException{};
+        default: return __constexpt_fail;
         }
     }
 
-    inline CONSTEXPR Type operator[](size_t i) const {
+    constexpr Type operator[](size_t i) const {
         switch (i) {
         case 0: return x;
         case 1: return y;
-        default: throw IllegalIndexException{};
+        default: return __constexpt_fail;
         }
     }
 
@@ -89,29 +89,29 @@ struct Storage<Type, 2, Type[2]> {
 };
 
 template<typename Type>
-struct Storage<Type, 3, Type[3]> {
+struct alignas(4 * sizeof(Type)) Storage<Type, 3, Type[3]> {
     Type x;
     Type y;
-    Type z;
+    union { Type z; Type __constexpt_fail; };
+
     constexpr Storage(const Type& x = {}, const Type& y = {}, const Type& z = {}) : x(x), y(y), z(z) {}
+    Storage(const RawInitTag&) {}
 
-    Storage(const Init&) {}
-
-    inline CONSTEXPR Type& operator[](size_t i) {
+    constexpr Type& operator[](size_t i) {
         switch (i) {
         case 0: return x;
         case 1: return y;
         case 2: return z;
-        default: throw IllegalIndexException{};
+        default: return __constexpt_fail;
         }
     }
 
-    inline CONSTEXPR Type operator[](size_t i) const {
+    constexpr Type operator[](size_t i) const {
         switch (i) {
         case 0: return x;
         case 1: return y;
         case 2: return z;
-        default: throw IllegalIndexException{};
+        default: return __constexpt_fail;
         }
     }
 
@@ -120,17 +120,17 @@ struct Storage<Type, 3, Type[3]> {
 
 
 template<typename Type, size_t N>
-struct Storage<Type, N, Type[N]> {
+struct alignas(sizeof(Type) >= 16 ? 4 * sizeof(Type) : 8 * sizeof(Type)) Storage<Type, N, Type[N]> {
 protected:
     Type data[N];
 public:
     template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N || sizeof...(Args) == 0>>
     constexpr Storage(const Args&... args) : data {args... } {}
    
-    Storage(const Init&) {}
+    Storage(const RawInitTag&) {}
 
-    inline CONSTEXPR Type& operator[](size_t i) { return data[i]; }
-    inline CONSTEXPR Type  operator[](size_t i) const { return data[i]; }
+    constexpr Type& operator[](size_t i) { return data[i]; }
+    constexpr Type  operator[](size_t i) const { return data[i]; }
 
     const Type* plainData() const { return data; }
 };
@@ -144,8 +144,8 @@ public:
     template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N>>
     constexpr Storage(const Args&... args) : data {args... } {}
 
-    inline CONSTEXPR Type& operator[](size_t i) { return data[i]; }
-    inline CONSTEXPR Type  operator[](size_t i) const { return data[i]; }
+    constexpr Type& operator[](size_t i) { return data[i]; }
+    constexpr Type  operator[](size_t i) const { return data[i]; }
 
     const Type* plainData() const { return data.data(); }
 };
@@ -160,12 +160,12 @@ using Initializer2D = const Type(&)[N_i][N_j];
 template<typename Type, size_t N_x, size_t N_y>
 struct Storage2D : public Storage<Type, N_x * N_y> {
 protected:
-    inline CONSTEXPR Type& get(size_t i, size_t j) { return Storage<Type, N_x * N_y>::operator[](i*N_y + j); }
-    inline CONSTEXPR Type  get(size_t i, size_t j) const { return Storage<Type, N_x * N_y>::operator[](i*N_y + j); }
-    inline CONSTEXPR Type& get(size_t i) { return Storage<Type, N_x * N_y>::operator[](i); }
-    inline CONSTEXPR Type  get(size_t i) const { return Storage<Type, N_x * N_y>::operator[](i); }
+    constexpr Type& get(size_t i, size_t j) { return Storage<Type, N_x * N_y>::operator[](i*N_y + j); }
+    constexpr Type  get(size_t i, size_t j) const { return Storage<Type, N_x * N_y>::operator[](i*N_y + j); }
+    constexpr Type& get(size_t i) { return Storage<Type, N_x * N_y>::operator[](i); }
+    constexpr Type  get(size_t i) const { return Storage<Type, N_x * N_y>::operator[](i); }
 
-    CONSTEXPR void init(Initializer2D<Type, N_x, N_y> list) {
+    constexpr void init(Initializer2D<Type, N_x, N_y> list) {
         for (size_t i = 0; i < N_x; ++i) {
             for (size_t j = 0; j < N_y; ++j) {
                 get(i, j) = list[i][j];
@@ -173,13 +173,13 @@ protected:
         }
     }
 public:
-    CONSTEXPR Storage2D() : Storage<Type, N_x * N_y>() {}
+    constexpr Storage2D() : Storage<Type, N_x * N_y>() {}
 
     template<typename... Args, typename = std::enable_if_t<sizeof...(Args) == N_x * N_y>>
     constexpr Storage2D(const Args&... args) : Storage<Type, N_x * N_y>( args... ) {} // Allow Constexpr init without inner braces
 
     template<typename T, size_t N_i, size_t N_j> // template guarantee narrowing is not possible
-    CONSTEXPR Storage2D(Initializer2D<T, N_i, N_j>& list) {
+    constexpr Storage2D(Initializer2D<T, N_i, N_j>& list) {
         static_assert(N_i == N_x, "Row number missmatch");
         static_assert(N_j == N_y, "Col number missmatch");
         init(list);
@@ -194,14 +194,14 @@ public:
 
     constexpr size_t size() const { return N; }
 
-    CONSTEXPR inline Vector& operator += (const Vector& v);
-    CONSTEXPR inline Vector& operator -= (const Vector& v);
+    CONSTEXPR Vector& operator += (const Vector& v);
+    CONSTEXPR Vector& operator -= (const Vector& v);
 
     template<class Scalar>
-    CONSTEXPR inline Vector& operator *= (Scalar s);
+    CONSTEXPR Vector& operator *= (Scalar s);
 
     template<class Scalar>
-    CONSTEXPR inline Vector& operator /= (Scalar s);
+    CONSTEXPR Vector& operator /= (Scalar s);
 
     constexpr Vector() {}
 
@@ -213,7 +213,10 @@ public:
         static_assert(sizeof...(Args) == N, "Vector<_, N> constructor should be called with exactly N arguments");
     }
 
-    Vector(const Init& init_tag) : Storage<T, N>(init_tag) {}
+    constexpr Vector(const Vector& vec) = default;
+    constexpr Vector(Vector&& vec) = default;
+
+    Vector(const RawInitTag& init_tag) : Storage<T, N>(init_tag) {}
 
     const T* data() const { return Storage<T, N>::plainData(); }
 };
@@ -341,14 +344,14 @@ public:
     CONSTEXPR Type& operator () (size_t i, size_t j) { return get(i, j); }
     CONSTEXPR Type operator () (size_t i, size_t j) const { return get(i, j); }
 
-    CONSTEXPR inline Matrix& operator += (const Matrix& v);
-    CONSTEXPR inline Matrix& operator -= (const Matrix& v);
+    CONSTEXPR Matrix& operator += (const Matrix& v);
+    CONSTEXPR Matrix& operator -= (const Matrix& v);
 
     template<class Scalar>
-    CONSTEXPR inline Matrix& operator *= (Scalar s);
+    CONSTEXPR Matrix& operator *= (Scalar s);
 
     template<class Scalar>
-    CONSTEXPR inline Matrix& operator /= (Scalar s);
+    CONSTEXPR Matrix& operator /= (Scalar s);
 
 
     using Storage2D<Type, N_x, N_y>::Storage2D;
@@ -499,5 +502,5 @@ std::ostream& operator << (std::ostream& os, const Matrix<T, N_i, N_j>& m) {
 
 } // namespace tmx
 
-
+#undef CONSTEXPR
 #endif // !TMX_MATRIX_VECTOR
