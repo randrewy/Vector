@@ -5,26 +5,13 @@
 #include <vector>
 #include <cmath>
 
-#if    (defined(__clang_major__) && __clang_major__ >= 3 && __clang_minor__ >= 2) \
+#if    (defined(__clang_major__) && (__clang_major__ * 10 + __clang_minor__ >= 32)) \
     || (defined (_MSC_VER) && _MSC_VER >= 1700 && 0)/* MSC still has some troubles*/ \
     || (defined (__GNUC__) && __GNUC__ >= 5)
     #define CONSTEXPR constexpr
 #else
 #define CONSTEXPR
 #endif // __clang__
-
-#if __cplusplus <= 201103L
-namespace std {
-template<typename T>
-using decay_t = typename decay<T>::type;
-
-template<bool value, typename TrueType, typename FalseType>
-using conditional_t = typename conditional<value, TrueType, FalseType>::type;
-
-template<bool value, typename Type = void>
-using enable_if_t = typename enable_if<value, Type>::type;
-}
-#endif // __cplusplus == 201103
 
 namespace tmx {
 namespace traits {
@@ -62,8 +49,7 @@ struct Storage;
 
 // is it better than anonymous struct? (which is deprecated since c++11)
 // though any good compiler will eliminate all branches from switch
-// this macro is the way to disable it
-#ifndef TMX_DONT_USE_NAMED_MEMBERS
+#ifdef TMX_USE_NAMED_MEMBERS
 template<typename Type>
 struct alignas(2 * sizeof(Type)) Storage<Type, 2, Type[2]> {
     Type x;
@@ -120,7 +106,7 @@ struct alignas(4 * sizeof(Type)) Storage<Type, 3, Type[3]> {
 
     const Type* plainData() const { return &x; }
 };
-#endif // TMX_DONT_USE_NAMED_MEMBERS
+#endif // TMX_USE_NAMED_MEMBERS
 
 template<typename Type, size_t N>
 struct alignas(sizeof(Type) >= 16 ? 4 * sizeof(Type) : 8 * sizeof(Type)) Storage<Type, N, Type[N]> {
