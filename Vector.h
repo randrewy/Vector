@@ -247,7 +247,7 @@ CONSTEXPR inline Vector<T, N>& Vector<T, N>::operator /= (Scalar s) {
 
 
 template<class T, size_t N>
-CONSTEXPR inline Vector<T, N>& operator - (const Vector<T, N>& v) {
+CONSTEXPR inline Vector<T, N> operator - (const Vector<T, N>& v) {
     Vector<T, N> tmp;
     for (size_t i = 0; i < N; ++i) {
         tmp[i] = -v[i];
