@@ -300,6 +300,11 @@ constexpr inline T len(const Vector<T, N>& vec) {
     return sqrt(sqlen(vec));
 }
 
+template<class T, size_t N>
+constexpr inline Vector<T, N> normalize(const Vector<T, N>& vec) {
+    return vec / sqrt(sqlen(vec));
+}
+
 template<class T>
 constexpr Vector<T, 3> cross (const Vector<T, 3>& a, const Vector<T, 3>& b) {
     return {a[1]*b[2] - a[2]*b[1],
@@ -307,9 +312,14 @@ constexpr Vector<T, 3> cross (const Vector<T, 3>& a, const Vector<T, 3>& b) {
             a[0]*b[1] - a[1]*b[0]};
 }
 
+template<class T>
+constexpr T cross(const Vector<T, 2>& a, const Vector<T, 2>& b) {
+    return a[1] * b[2] - a[2] * b[1];
+}
+
 template<class T, size_t N>
 constexpr Vector<T, 3> cross (Initializer<T, N>& a, Initializer<T, N>& b) {
-    static_assert(N == 3, "3D cross product should have 3D vector arguments");
+    static_assert(N == 3 || N == 2, "Cross product should have 2D/3D vector arguments");
     return cross(Vector<T, 3>{a[0], a[1], a[2]}, Vector<T, 3>{b[0], b[1], b[2]});
 }
 
